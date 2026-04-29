@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windmill Cafe — Main Branch Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+  /* ══ THEME: Caramel (default) ══ */
+  :root,[data-theme="caramel"]{
+    --bg:#1a1208;--surface:#241a0e;--surface2:#2e2213;--surface3:#3a2b18;
+    --border:#4a3820;--border2:#5e4a2a;
+    --text:#f0e8d8;--text2:#b09878;--text3:#7a6448;
+    --accent:#c4895a;--accent2:#e0a870;--accent-bg:rgba(196,137,90,.15);
+    --green:#5aab7a;--green-bg:rgba(90,171,122,.12);
+    --amber:#d4a040;--amber-bg:rgba(212,160,64,.12);
+    --red:#c05050;--red-bg:rgba(192,80,80,.12);
+    --blue:#5a90c0;--blue-bg:rgba(90,144,192,.12);
+    --purple:#9a70c0;--purple-bg:rgba(154,112,192,.12);
+    --shadow:0 2px 20px rgba(0,0,0,.4);
+    --radius:12px;--radius-sm:8px;
+    --header-grad:linear-gradient(135deg,#3a2b18 0%,#2e2213 100%);
+  }
+  /* ══ THEME: Midnight Navy ══ */
+  [data-theme="navy"]{
+    --bg:#0d111a;--surface:#141b28;--surface2:#1a2336;--surface3:#223047;
+    --border:#2a3a55;--border2:#364d6e;
+    --text:#e8eef8;--text2:#8fa4c4;--text3:#546a8a;
+    --accent:#4d9de0;--accent2:#7bb8f0;--accent-bg:rgba(77,157,224,.15);
+    --green:#3dbf7a;--green-bg:rgba(61,191,122,.12);
+    --amber:#e0a040;--amber-bg:rgba(224,160,64,.12);
+    --red:#e05060;--red-bg:rgba(224,80,96,.12);
+    --blue:#4d9de0;--blue-bg:rgba(77,157,224,.12);
+    --purple:#8a70e0;--purple-bg:rgba(138,112,224,.12);
+    --shadow:0 2px 20px rgba(0,0,0,.5);
+    --radius:12px;--radius-sm:8px;
+    --header-grad:linear-gradient(135deg,#1a2336 0%,#0d111a 100%);
+  }
+  /* ══ THEME: Forest Green ══ */
+  [data-theme="forest"]{
+    --bg:#0b1610;--surface:#111f16;--surface2:#162a1c;--surface3:#1e3825;
+    --border:#264d32;--border2:#306040;
+    --text:#e0f0e8;--text2:#80b898;--text3:#4a7a5c;
+    --accent:#4dbe7a;--accent2:#70d494;--accent-bg:rgba(77,190,122,.15);
+    --green:#4dbe7a;--green-bg:rgba(77,190,122,.12);
+    --amber:#d4b040;--amber-bg:rgba(212,176,64,.12);
+    --red:#d06060;--red-bg:rgba(208,96,96,.12);
+    --blue:#50a0c8;--blue-bg:rgba(80,160,200,.12);
+    --purple:#9080c8;--purple-bg:rgba(144,128,200,.12);
+    --shadow:0 2px 20px rgba(0,0,0,.5);
+    --radius:12px;--radius-sm:8px;
+    --header-grad:linear-gradient(135deg,#1e3825 0%,#111f16 100%);
+  }
+  /* ══ THEME: Crimson ══ */
+  [data-theme="crimson"]{
+    --bg:#160a0a;--surface:#201010;--surface2:#2a1515;--surface3:#361c1c;
+    --border:#4d2020;--border2:#632a2a;
+    --text:#f5e8e8;--text2:#c09090;--text3:#8a5555;
+    --accent:#d44040;--accent2:#e87070;--accent-bg:rgba(212,64,64,.15);
+    --green:#4dab70;--green-bg:rgba(77,171,112,.12);
+    --amber:#d4a040;--amber-bg:rgba(212,160,64,.12);
+    --red:#d44040;--red-bg:rgba(212,64,64,.12);
+    --blue:#5a88b8;--blue-bg:rgba(90,136,184,.12);
+    --purple:#9060b8;--purple-bg:rgba(144,96,184,.12);
+    --shadow:0 2px 20px rgba(0,0,0,.5);
+    --radius:12px;--radius-sm:8px;
+    --header-grad:linear-gradient(135deg,#361c1c 0%,#201010 100%);
+  }
+  /* ══ THEME: Slate Purple ══ */
+  [data-theme="slate"]{
+    --bg:#100d1a;--surface:#181428;--surface2:#201b34;--surface3:#2a2444;
+    --border:#3a3260;--border2:#4a4078;
+    --text:#ede8f8;--text2:#9a90c0;--text3:#5e5890;
+    --accent:#8060e0;--accent2:#a888f0;--accent-bg:rgba(128,96,224,.15);
+    --green:#40b888;--green-bg:rgba(64,184,136,.12);
+    --amber:#c8a038;--amber-bg:rgba(200,160,56,.12);
+    --red:#d05070;--red-bg:rgba(208,80,112,.12);
+    --blue:#5090d8;--blue-bg:rgba(80,144,216,.12);
+    --purple:#8060e0;--purple-bg:rgba(128,96,224,.12);
+    --shadow:0 2px 20px rgba(0,0,0,.5);
+    --radius:12px;--radius-sm:8px;
+    --header-grad:linear-gradient(135deg,#2a2444 0%,#181428 100%);
+  }
+  /* ══ THEME SWITCHER UI ══ */
+  .theme-switcher{display:flex;gap:14px;flex-wrap:wrap;padding:10px 0 4px;}
+  .theme-swatch{width:40px;height:40px;border-radius:10px;border:3px solid transparent;cursor:pointer;position:relative;transition:transform .15s,border-color .15s,box-shadow .15s;overflow:hidden;flex-shrink:0;}
+  .theme-swatch:hover{transform:scale(1.12);box-shadow:0 4px 16px rgba(0,0,0,.4);}
+  .theme-swatch.active{border-color:var(--text);box-shadow:0 0 0 2px var(--accent);}
+  .theme-swatch-inner{width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+  .ts-q{width:100%;height:100%;}
+  .theme-label{font-size:10px;color:var(--text3);text-align:center;margin-top:5px;font-family:'DM Sans',sans-serif;letter-spacing:.4px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{transition:background .35s,color .35s;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .35s,color .35s;}
+
+  /* ══ HEADER ══ */
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo svg{transition:filter .3s;cursor:default;}
+  .logo:hover svg{filter:drop-shadow(0 2px 14px rgba(196,137,90,0.75))!important;}
+  .logo-text{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--text);}
+  .logo-sub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-weight:500;}
+  .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .main-badge{background:var(--accent);color:white;font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;}
+  .live-indicator{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--green);font-weight:500;}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+  .notif-btn{position:relative;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+  .notif-btn:hover{background:var(--surface3);}
+  .notif-badge{position:absolute;top:4px;right:4px;background:var(--red);color:white;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;}
+  .hdr-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+  .hdr-btn:hover{background:var(--surface3);color:var(--text);}
+  .hdr-btn.purple{background:var(--purple-bg);border-color:rgba(154,112,192,.4);color:var(--purple);}
+  .hdr-btn.purple:hover{background:var(--purple);color:white;border-color:var(--purple);}
+  .hdr-btn.amber{background:var(--amber-bg);border-color:rgba(212,160,64,.4);color:var(--amber);}
+  .hdr-btn.amber:hover{background:var(--amber);color:white;}
+  .hdr-btn.blue{background:var(--blue-bg);border-color:rgba(90,144,192,.4);color:var(--blue);}
+  .hdr-btn.blue:hover{background:var(--blue);color:white;}
+
+  /* ══ EDIT ORDER MODAL ══ */
+  .eo-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:550;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;}
+  .eo-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:760px;max-width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+  .eo-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+  .eo-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--text);}
+  .eo-close{background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text2);cursor:pointer;}
+  .eo-close:hover{background:var(--red-bg);color:var(--red);border-color:rgba(192,80,80,.4);}
+  .eo-body{padding:1.25rem 1.5rem;}
+  .eo-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:8px;justify-content:flex-end;}
+  .eo-save{background:var(--green);color:white;border:none;border-radius:var(--radius-sm);padding:9px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;}
+  .eo-save:hover{opacity:.85;}
+  .eo-cancel{background:var(--surface3);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;}
+  .eo-item-row{display:grid;grid-template-columns:22px 1fr 90px 130px 80px 1fr 28px;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+  .eo-item-row:last-child{border-bottom:none;}
+  .eo-row-num{font-size:11px;color:var(--text3);text-align:center;font-family:monospace;}
+  .eo-input{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);outline:none;width:100%;}
+  .eo-input:focus{border-color:var(--accent2);}
+  .eo-select{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:5px 6px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);outline:none;width:100%;}
+  .eo-select:focus{border-color:var(--accent2);}
+  .eo-del-row{width:26px;height:26px;border-radius:6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(192,80,80,.3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .eo-del-row:hover{background:var(--red);color:white;}
+  .eo-add-row{margin-top:10px;width:100%;padding:8px;background:var(--accent-bg);color:var(--accent);border:1px dashed rgba(196,137,90,.5);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;}
+  .eo-add-row:hover{background:var(--accent);color:white;border-style:solid;}
+  .eo-col-heads{display:grid;grid-template-columns:22px 1fr 90px 130px 80px 1fr 28px;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+  .eo-col-head{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;}
+
+  /* ══ LAYOUT ══ */
+  .container{max-width:1300px;margin:0 auto;padding:2rem;}
+  .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:2rem;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;}
+  .stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:500;margin-bottom:6px;}
+  .stat-value{font-size:30px;font-weight:300;color:var(--text);line-height:1;}
+  .stat-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+  .stat-card.urgent{border-color:var(--red);}.stat-card.urgent .stat-value{color:var(--red);}
+  .stat-card.accent{border-color:var(--accent);}.stat-card.accent .stat-value{color:var(--accent);}
+  .main-layout{display:grid;grid-template-columns:270px 1fr;gap:1.5rem;align-items:start;}
+  .sidebar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem;}
+  .sidebar-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500;color:var(--text);margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);}
+
+  /* ══ BRANCH ITEMS (with edit/delete) ══ */
+  .branch-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+  .branch-item:last-child{border-bottom:none;}
+  .branch-name{font-size:14px;color:var(--text);}
+  .branch-cnt{font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;}
+  .branch-cnt.has-pending{background:var(--red-bg);color:var(--red);}
+  .branch-cnt.clear{background:var(--surface2);color:var(--text3);font-weight:400;}
+  .branch-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s;}
+  .branch-item:hover .branch-actions{opacity:1;}
+  .branch-edit-btn,.branch-del-btn{width:22px;height:22px;border-radius:4px;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;}
+  .branch-edit-btn{background:var(--amber-bg);color:var(--amber);}
+  .branch-edit-btn:hover{background:var(--amber);color:white;}
+  .branch-del-btn{background:var(--red-bg);color:var(--red);}
+  .branch-del-btn:hover{background:var(--red);color:white;}
+
+  .activity-log{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+  .activity-item{display:flex;gap:8px;align-items:flex-start;}
+  .activity-dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);margin-top:5px;flex-shrink:0;}
+  .activity-time{font-size:10px;color:var(--text3);white-space:nowrap;margin-top:2px;}
+  .main-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);}
+  .card-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:500;color:var(--text);}
+
+  /* ══ FILTERS ══ */
+  .filter-tabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
+  .filter-tab{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .filter-tab.active{background:var(--accent);color:white;border-color:var(--accent);}
+  .filter-tab .cnt{display:inline-block;padding:1px 5px;border-radius:8px;font-size:10px;margin-left:4px;background:rgba(255,255,255,.15);}
+  .filter-tab:not(.active) .cnt{background:var(--surface3);color:var(--text3);}
+  .order-list{display:flex;flex-direction:column;gap:12px;}
+  .order-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:border-color .15s;}
+  .order-card:hover{border-color:var(--border2);}
+  .order-card.urgent-order{border-left:3px solid var(--red);}
+  .order-card.new-order{animation:slideIn .4s ease;border-color:var(--accent2);}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .order-header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+  .order-header:hover{background:var(--surface2);}
+  .order-id{font-size:13px;font-weight:700;color:var(--accent);font-family:monospace;flex-shrink:0;}
+  .order-info{flex:1;min-width:0;}
+  .order-title{font-size:14px;font-weight:500;color:var(--text);}
+  .order-meta{font-size:12px;color:var(--text2);margin-top:3px;}
+  .order-chevron{font-size:13px;color:var(--text3);transition:transform .2s;flex-shrink:0;}
+  .order-chevron.open{transform:rotate(180deg);}
+  .order-body{padding:14px 16px;}
+  .items-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+  .items-table th{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:5px 10px;text-align:left;border-bottom:1px solid var(--border);}
+  .items-table td{font-size:13px;color:var(--text);padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+  .items-table tr:last-child td{border-bottom:none;}
+  .items-table .item-name{font-weight:500;}
+  .priority-high-tag{font-size:10px;background:var(--red-bg);color:var(--red);border:1px solid rgba(192,80,80,.3);padding:2px 6px;border-radius:8px;font-weight:600;}
+  .order-note-display{font-size:13px;color:var(--text2);padding:8px 10px;background:rgba(255,255,255,.04);border-radius:6px;border-left:2px solid var(--border2);font-style:italic;margin-bottom:12px;}
+  .order-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border);}
+  .action-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:6px;border:1px solid;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;}
+  .action-btn.process{background:var(--blue-bg);color:var(--blue);border-color:rgba(90,144,192,.4);}
+  .action-btn.arrange{background:var(--amber-bg);color:var(--amber);border-color:rgba(212,160,64,.4);}
+  .action-btn.send{background:var(--green-bg);color:var(--green);border-color:rgba(90,171,122,.4);}
+  .action-btn.cancel{background:var(--surface3);color:var(--text3);border-color:var(--border);}
+  .action-btn.del{background:var(--surface3);color:var(--text3);border-color:var(--border);}
+  .action-btn:hover{opacity:.75;transform:translateY(-1px);}
+  .sent-note{margin-top:10px;padding:8px 10px;background:var(--accent-bg);border-radius:6px;border-left:2px solid var(--accent);font-size:12px;color:var(--accent2);}
+  .sent-note span{font-weight:600;}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;}
+  .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.8;}
+  .badge.pending{background:var(--amber-bg);color:var(--amber);}
+  .badge.processing{background:var(--blue-bg);color:var(--blue);}
+  .badge.arranged{background:var(--accent-bg);color:var(--accent2);}
+  .badge.sent{background:var(--green-bg);color:var(--green);}
+  .badge.received{background:rgba(90,171,122,.2);color:#7dcc9e;}
+  .badge.cancelled{background:var(--surface3);color:var(--text3);}
+  .from-badge{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(90,144,192,.3);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500;}
+  .empty-state{text-align:center;padding:3rem 1rem;color:var(--text3);}
+  .empty-state .icon{font-size:36px;margin-bottom:8px;}
+
+  /* ══ MODALS ══ */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;width:420px;max-width:90vw;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+  .modal-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;color:var(--text);}
+  .modal-sub{font-size:13px;color:var(--text2);margin-bottom:1rem;}
+  .modal-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;margin-bottom:1rem;}
+  .modal-input:focus{border-color:var(--accent);}
+  .modal-btns{display:flex;gap:10px;}
+  .modal-btn{flex:1;padding:10px;border-radius:var(--radius-sm);border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;}
+  .modal-btn.confirm{background:var(--green);color:white;}
+  .modal-btn.cancel-m{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+
+  /* ══ TOAST ══ */
+  .toast-container{position:fixed;top:80px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:999;max-width:320px;}
+  .toast{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.4);animation:toastIn .3s ease;}
+  .toast.success{border-left-color:var(--green);}
+  .toast.info{border-left-color:var(--blue);}
+  .toast.urgent{border-left-color:var(--red);}
+  @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  .toast-title{font-weight:500;color:var(--text);margin-bottom:2px;}
+  .toast-msg{color:var(--text2);font-size:12px;}
+
+  /* ══ CATEGORY MANAGER ══ */
+  .catman-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;overflow-y:auto;padding:1.5rem;display:none;}
+  .catman-overlay.open{display:block;}
+  .catman-panel{max-width:780px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .catman-header{background:var(--header-grad);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+  .catman-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);}
+  .catman-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+  .catman-close{background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 16px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text2);cursor:pointer;transition:all .12s;}
+  .catman-close:hover{background:var(--red-bg);color:var(--red);border-color:rgba(192,80,80,.4);}
+  .catman-body{padding:1.5rem;display:flex;flex-direction:column;gap:12px;}
+  .catman-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);background:var(--surface2);}
+  .cat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+  .cat-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface3);border-bottom:1px solid var(--border);}
+  .cat-emoji-display{width:32px;height:32px;border-radius:8px;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .cat-name-display{font-size:15px;font-weight:500;color:var(--text);flex:1;}
+  .cat-count{font-size:11px;background:var(--surface2);color:var(--text3);padding:2px 8px;border-radius:10px;}
+  .cat-del-btn{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;border-radius:4px;transition:all .12s;line-height:1;}
+  .cat-del-btn:hover{color:var(--red);background:var(--red-bg);}
+  .cat-card-body{padding:12px 14px;}
+  .sub-items-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:28px;}
+  .sub-item-tag{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);padding:3px 10px;transition:all .12s;}
+  .sub-item-tag:hover{border-color:var(--red);background:var(--red-bg);}
+  .sub-item-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;line-height:1;padding:0;transition:color .1s;}
+  .sub-item-del:hover{color:var(--red);}
+  .add-sub-row{display:flex;gap:6px;}
+  .add-sub-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;}
+  .add-sub-input:focus{border-color:var(--accent);}
+  .add-sub-btn{background:var(--accent-bg);color:var(--accent);border:1px solid rgba(196,137,90,.4);border-radius:var(--radius-sm);padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .12s;}
+  .add-sub-btn:hover{background:var(--accent);color:white;border-color:var(--accent);}
+  /* ── CATEGORY EDIT INLINE ── */
+  .cat-edit-btn{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:4px;transition:all .12s;line-height:1;flex-shrink:0;}
+  .cat-edit-btn:hover{color:var(--amber);background:var(--amber-bg);}
+  .cat-edit-form{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}
+  .cat-edit-emoji{width:52px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:5px 4px;font-size:16px;text-align:center;color:var(--text);outline:none;flex-shrink:0;}
+  .cat-edit-emoji:focus{border-color:var(--accent2);}
+  .cat-edit-name{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);outline:none;}
+  .cat-edit-name:focus{border-color:var(--accent2);}
+  .cat-edit-save{background:var(--green);color:white;border:none;border-radius:6px;padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+  .cat-edit-save:hover{opacity:.85;}
+  .cat-edit-cancel{background:var(--surface3);color:var(--text2);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;flex-shrink:0;}
+  .cat-edit-cancel:hover{background:var(--red-bg);color:var(--red);border-color:rgba(192,80,80,.4);}
+  .catman-refresh-btn{background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;}
+  .catman-refresh-btn:hover{background:var(--accent-bg);color:var(--accent);border-color:rgba(196,137,90,.4);}
+  .new-cat-row{display:flex;gap:8px;align-items:center;}
+  .new-cat-emoji{width:60px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px;font-family:'DM Sans',sans-serif;font-size:18px;text-align:center;color:var(--text);outline:none;}
+  .new-cat-name{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;}
+  .new-cat-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .12s;}
+  .new-cat-btn:hover{opacity:.85;}
+
+  /* ══ BRANCH MANAGER OVERLAY ══ */
+  .branchman-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;overflow-y:auto;padding:1.5rem;display:none;}
+  .branchman-overlay.open{display:block;}
+  .branchman-panel{max-width:560px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .branchman-header{background:var(--header-grad);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+  .branchman-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);}
+  .branchman-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+  .branchman-close{background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 16px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text2);cursor:pointer;}
+  .branchman-close:hover{background:var(--red-bg);color:var(--red);}
+  .branchman-body{padding:1.5rem;display:flex;flex-direction:column;gap:10px;}
+  .branchman-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);background:var(--surface2);}
+  .bm-branch-row{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;}
+  .bm-emoji{font-size:20px;width:30px;text-align:center;flex-shrink:0;}
+  .bm-name{flex:1;font-size:14px;color:var(--text);}
+  .bm-edit-btn{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(212,160,64,.4);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+  .bm-edit-btn:hover{background:var(--amber);color:white;}
+  .bm-del-btn{background:var(--red-bg);color:var(--red);border:1px solid rgba(192,80,80,.3);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+  .bm-del-btn:hover{background:var(--red);color:white;}
+  .new-branch-row{display:grid;grid-template-columns:60px 1fr auto;gap:8px;align-items:center;}
+  .new-branch-emoji{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px;font-size:18px;text-align:center;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;}
+  .new-branch-name{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;}
+  .new-branch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
+  .new-branch-btn:hover{opacity:.85;}
+
+  /* ══ REPORTS OVERLAY ══ */
+  .reports-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;overflow-y:auto;padding:1.5rem;display:none;}
+  .reports-overlay.open{display:block;}
+  .reports-panel{max-width:900px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .reports-header{background:var(--header-grad);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+  .reports-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);}
+  .reports-body{padding:1.5rem;}
+  .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem;}
+  .report-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.25rem;}
+  .report-card-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:.5rem;}
+  .report-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;color:var(--text2);}
+  .report-stat-row span:last-child{font-weight:600;color:var(--text);}
+  .report-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .report-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;}
+  .report-btn:hover{background:var(--accent);color:white;border-color:var(--accent);}
+  .report-btn.green:hover{background:var(--green);border-color:var(--green);}
+
+  /* ══ SETTINGS OVERLAY ══ */
+  .settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;overflow-y:auto;padding:1.5rem;display:none;}
+  .settings-overlay.open{display:block;}
+  .settings-panel{max-width:640px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .settings-header{background:var(--header-grad);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+  .settings-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);}
+  .settings-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;}
+  .settings-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.25rem;}
+  .settings-section-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);}
+  .settings-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+  .settings-row:last-child{border-bottom:none;}
+  .settings-label{font-size:13px;color:var(--text2);}
+  .settings-label small{display:block;font-size:11px;color:var(--text3);margin-top:2px;}
+  .toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:12px;cursor:pointer;transition:.3s;}
+  .toggle-slider::before{position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:.3s;}
+  .toggle input:checked + .toggle-slider{background:var(--green);}
+  .toggle input:checked + .toggle-slider::before{transform:translateX(20px);background:white;}
+  .settings-input{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;width:180px;}
+  .settings-input:focus{border-color:var(--accent);}
+  .settings-save-btn{background:var(--green);color:white;border:none;border-radius:var(--radius-sm);padding:10px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:.5rem;}
+  .settings-save-btn:hover{opacity:.85;}
+  .settings-danger-btn{background:var(--red-bg);color:var(--red);border:1px solid rgba(192,80,80,.3);border-radius:var(--radius-sm);padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+  .settings-danger-btn:hover{background:var(--red);color:white;}
+
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+  @media(max-width:900px){.main-layout{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(3,1fr);}.report-grid{grid-template-columns:1fr;}}
+  @media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr;}.container{padding:1rem;}.header{padding:0 1rem;}.header-right{gap:5px;}.hdr-btn span{display:none;}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <!-- Animated Windmill SVG Logo -->
+    <svg width="52" height="52" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(196,137,90,0.45));">
+      <defs>
+        <style>
+          .wm-rotor { transform-origin: 26px 26px; animation: wm-spin 5s linear infinite; }
+          .wm-hub-pulse { animation: wm-hub 2.5s ease-in-out infinite; }
+          @keyframes wm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          @keyframes wm-hub { 0%,100%{r:3.5} 50%{r:4.5} }
+        </style>
+        <radialGradient id="hubGrad" cx="50%" cy="35%" r="60%">
+          <stop offset="0%" stop-color="#f8e4c0"/>
+          <stop offset="100%" stop-color="#c4895a"/>
+        </radialGradient>
+        <linearGradient id="towerGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#8B5E3C"/>
+          <stop offset="50%" stop-color="#c4895a"/>
+          <stop offset="100%" stop-color="#8B5E3C"/>
+        </linearGradient>
+        <filter id="bladeShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#3d1e00" flood-opacity="0.35"/>
+        </filter>
+      </defs>
+      <!-- Tower body (trapezoid) -->
+      <polygon points="24.5,47 27.5,47 26.5,27 25.5,27" fill="url(#towerGrad)"/>
+      <!-- Tower base platform -->
+      <rect x="20" y="46" width="12" height="3.5" rx="1.8" fill="#7a5030"/>
+      <!-- Tower door detail -->
+      <rect x="24.5" y="41" width="3" height="4" rx="1" fill="#5a3820" opacity="0.7"/>
+      <!-- Rotor group (spins) -->
+      <g class="wm-rotor" filter="url(#bladeShadow)">
+        <!-- Blade 1: pointing up — wide paddle shape -->
+        <path d="M26,26 C27.5,22 29,16 27,8 C25.5,12 23.5,16 26,26Z" fill="#c4895a"/>
+        <!-- Blade 2: pointing right -->
+        <path d="M26,26 C30,24.5 36,23 44,25 C40,26.5 36,28.5 26,26Z" fill="#d4a06a"/>
+        <!-- Blade 3: pointing down -->
+        <path d="M26,26 C24.5,30 23,36 25,44 C26.5,40 28.5,36 26,26Z" fill="#c4895a"/>
+        <!-- Blade 4: pointing left -->
+        <path d="M26,26 C22,27.5 16,29 8,27 C12,25.5 16,23.5 26,26Z" fill="#d4a06a"/>
+      </g>
+      <!-- Hub cap -->
+      <circle cx="26" cy="26" r="5" fill="url(#hubGrad)" stroke="#8B5E3C" stroke-width="1"/>
+      <!-- Hub center dot (pulsing) -->
+      <circle cx="26" cy="26" class="wm-hub-pulse" r="3.5" fill="#f0e8d8" opacity="0.9"/>
+      <!-- Hub highlight -->
+      <circle cx="24.8" cy="24.8" r="1.2" fill="white" opacity="0.5"/>
+    </svg>
+    <div>
+      <div class="logo-text">Windmill Cafe</div>
+      <div class="logo-sub">Main Branch — Control Center</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-indicator"><div class="live-dot"></div>Live</div>
+    <button class="hdr-btn" onclick="refreshAllData()" title="Re-sync all data from Firebase">↺ <span>Refresh</span></button>
+    <button class="hdr-btn blue" onclick="openReports()">📊 <span>Reports</span></button>
+    <button class="hdr-btn amber" onclick="openBranchManager()">🏪 <span>Branches</span></button>
+    <button class="hdr-btn purple" onclick="openCatManager()">📂 <span>Categories</span></button>
+    <button class="hdr-btn" onclick="openSettings()">⚙️ <span>Settings</span></button>
+    <div class="notif-btn" onclick="clearNotif()">🔔<div class="notif-badge" id="notifBadge"></div></div>
+    <div class="main-badge">🏛 Main</div>
+  </div>
+</header>
+
+<!-- EDIT ORDER OVERLAY -->
+<div class="eo-overlay" id="eoOverlay" style="display:none" onclick="if(event.target===this)closeEO()">
+  <div class="eo-panel">
+    <div class="eo-header">
+      <div>
+        <div class="eo-title" id="eoTitle">Edit Order</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px" id="eoSub"></div>
+      </div>
+      <button class="eo-close" onclick="closeEO()">✕ Close</button>
+    </div>
+    <div class="eo-body">
+      <div class="eo-col-heads">
+        <div class="eo-col-head">#</div>
+        <div class="eo-col-head">Item Name</div>
+        <div class="eo-col-head">Qty</div>
+        <div class="eo-col-head">Category</div>
+        <div class="eo-col-head">Priority</div>
+        <div class="eo-col-head">Note</div>
+        <div class="eo-col-head"></div>
+      </div>
+      <div id="eoItemRows"></div>
+      <button class="eo-add-row" onclick="eoAddRow()">+ Add Item</button>
+    </div>
+    <div class="eo-footer">
+      <button class="eo-cancel" onclick="closeEO()">Cancel</button>
+      <button class="eo-save" onclick="saveEO()">✓ Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY MANAGER OVERLAY -->
+<div class="catman-overlay" id="catManagerOverlay">
+  <div class="catman-panel">
+    <div class="catman-header">
+      <div>
+        <div class="catman-title">📂 Category Manager</div>
+        <div class="catman-sub">Add categories and sub-items — branches see these in their order form</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="catman-refresh-btn" onclick="refreshCatManager()" title="Re-sync from server">↺ Refresh</button>
+        <button class="catman-close" onclick="closeCatManager()">✕ Close</button>
+      </div>
+    </div>
+    <div class="catman-body" id="catManagerBody"></div>
+    <div class="catman-footer">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Add New Category</div>
+      <div class="new-cat-row">
+        <input class="new-cat-emoji" id="newCatEmoji" placeholder="☕" maxlength="4">
+        <input class="new-cat-name" id="newCatName" placeholder="Category name (e.g. Coffee Beans, Sweet Items...)" onkeydown="if(event.key==='Enter')addCategory()">
+        <button class="new-cat-btn" onclick="addCategory()">+ Add Category</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BRANCH MANAGER OVERLAY -->
+<div class="branchman-overlay" id="branchManagerOverlay">
+  <div class="branchman-panel">
+    <div class="branchman-header">
+      <div>
+        <div class="branchman-title">🏪 Branch Manager</div>
+        <div class="branchman-sub">Add, edit, or remove branches</div>
+      </div>
+      <button class="branchman-close" onclick="closeBranchManager()">✕ Close</button>
+    </div>
+    <div class="branchman-body" id="branchManagerBody"></div>
+    <div class="branchman-footer">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Add New Branch</div>
+      <div class="new-branch-row">
+        <input class="new-branch-emoji" id="newBranchEmoji" placeholder="🏙" maxlength="4">
+        <input class="new-branch-name" id="newBranchName" placeholder="Branch name (e.g. Fujairah Branch)" onkeydown="if(event.key==='Enter')addBranch()">
+        <button class="new-branch-btn" onclick="addBranch()">+ Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORTS OVERLAY -->
+<div class="reports-overlay" id="reportsOverlay">
+  <div class="reports-panel">
+    <div class="reports-header">
+      <div>
+        <div class="reports-title">📊 Reports</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">Order summary & analytics</div>
+      </div>
+      <button class="branchman-close" onclick="closeReports()">✕ Close</button>
+    </div>
+    <div class="reports-body" id="reportsBody"></div>
+  </div>
+</div>
+
+<!-- SETTINGS OVERLAY -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <div>
+        <div class="settings-title">⚙️ Settings</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">System preferences & configuration</div>
+      </div>
+      <button class="branchman-close" onclick="closeSettings()">✕ Close</button>
+    </div>
+    <div class="settings-body" id="settingsBody"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<div id="modalContainer"></div>
+<div class="container" id="appContent"></div>
+
+<script>
+/* ══════════════════════════════════════
+   FIREBASE SETUP
+══════════════════════════════════════ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC_9t2eEv_W7kGVE-3DMtAyPWPl4hQDc9w",
+  databaseURL: "https://windmill-cafe-stors-default-rtdb.firebaseio.com/",
+  projectId: "windmill-cafe-stors",
+};
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+const DB = firebase.database();
+
+/* ── FIREBASE LOCAL CACHES ── */
+let _ordersCache   = [];
+let _branchesCache = null;
+let _catsCache     = null;
+let _activityCache = [];
+let _dbReady       = false;
+
+/* ── FIREBASE LISTENERS (registered after var declarations below) ── */
+function initFirebaseListeners() {
+
+  DB.ref('wm_branches').on('value', function(snap) {
+    _branchesCache = snap.val() || null;
+    BRANCHES = getBranches();
+    render();
+  });
+
+  DB.ref('wm_categories_data').on('value', function(snap) {
+    const val = snap.val();
+    if (val && Array.isArray(val) && val.length) {
+      _catsCache = val;
+    } else if (!val) {
+      // First load — write defaults to Firebase so all clients share them
+      _catsCache = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      DB.ref('wm_categories_data').set(_catsCache);
+    }
+    // Refresh category manager overlay if it is open
+    const overlay = document.getElementById('catManagerOverlay');
+    if (overlay && overlay.classList.contains('open')) renderCatManager();
+  });
+
+  DB.ref('wm_activity').on('value', function(snap) {
+    const val = snap.val();
+    _activityCache = val
+      ? Object.values(val).sort((a, b) => (b._ts || 0) - (a._ts || 0))
+      : [];
+  });
+
+  DB.ref('wm_orders').on('value', function(snap) {
+    const val = snap.val();
+    const newOrders = val
+      ? Object.values(val).sort((a, b) => (b._ts || 0) - (a._ts || 0))
+      : [];
+
+    if (_dbReady) {
+      // Detect newly arrived orders and notify
+      const oldIds = new Set(_ordersCache.map(o => o.id));
+      newOrders.filter(o => !oldIds.has(o.id)).forEach(newest => {
+        notifCount++;
+        const badge = document.getElementById('notifBadge');
+        if (badge) { badge.style.display = 'flex'; badge.textContent = notifCount > 9 ? '9+' : notifCount; }
+        const hasUrgent = newest.items.some(i => i.priority === 'High');
+        showToast(
+          hasUrgent ? '⚡ Urgent Order' : '📦 New Order',
+          `${(BRANCHES[newest.from]||{emoji:'🏪',name:newest.from}).emoji} ${(BRANCHES[newest.from]||{name:newest.from}).name} · ${newest.items.length} item${newest.items.length > 1 ? 's' : ''}`,
+          hasUrgent ? 'urgent' : 'info'
+        );
+      });
+    }
+
+    _ordersCache = newOrders;
+    _dbReady     = true;
+    render();
+  });
+}
+
+/* ══════════════════════════════════════
+   BRANCHES (dynamic, synced via Firebase)
+══════════════════════════════════════ */
+const DEFAULT_BRANCHES = {
+  dubai:    {name:'Dubai Branch',   emoji:'🏙'},
+  abudhabi: {name:'Abu Dhabi Branch',emoji:'🌆'},
+  sharjah:  {name:'Sharjah Branch', emoji:'🏘'},
+  alain:    {name:'Al Ain Branch',  emoji:'🌿'}
+};
+
+function getBranches(){
+  return _branchesCache || DEFAULT_BRANCHES;
+}
+function saveBranches(b){
+  _branchesCache = b;
+  BRANCHES = b;
+  DB.ref('wm_branches').set(b).catch(e => console.error('Firebase saveBranches:', e));
+}
+let BRANCHES = getBranches();
+
+/* ══════════════════════════════════════
+   CATEGORIES
+══════════════════════════════════════ */
+const DEFAULT_CATEGORIES=[
+  {id:'c1',name:'Coffee Beans',emoji:'☕',subs:['Ethiopia Guji','Brazil Cerrado','Colombia Huila','Kenya AA','Yemen Haraaz','Guatemala Antigua','Costa Rica Tarrazu']},
+  {id:'c2',name:'Sweet Items',emoji:'🍰',subs:['Chocolate Cake','Muffin','Croissant','Cookie','Brownie','Cheesecake','Tiramisu','Macaron']},
+  {id:'c3',name:'General Items',emoji:'📦',subs:['Cups','Lids','Napkins','Sugar','Milk','Straws','Stir Sticks','Take-away Bags','Tissue Paper']},
+  {id:'c4',name:'Equipment',emoji:'⚙️',subs:['Grinder Parts','Filter Papers','Portafilter','Group Head Gasket','Steam Wand Tip','Tamper']},
+  {id:'c5',name:'Packaging',emoji:'🛍',subs:['Paper Bags','Gift Boxes','Labels','Tape','Ribbon','Stickers']},
+  {id:'c6',name:'Cleaning Supplies',emoji:'🧹',subs:['Detergent','Descaler','Wipes','Gloves','Sponges','Cleaning Tablets']},
+];
+
+function getCategories(){ return _catsCache ? JSON.parse(JSON.stringify(_catsCache)) : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)); }
+function saveCategories(cats){
+  _catsCache = cats;
+  DB.ref('wm_categories_data').set(cats).catch(e => {
+    console.error('Firebase saveCategories:', e);
+    showToast('Sync Error','Category save failed — check connection','');
+  });
+}
+function genCatId(){return 'c'+Date.now();}
+
+/* ══════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════ */
+function getSettings(){
+  try{return JSON.parse(localStorage.getItem('wm_settings')||'null') || {cafeName:'Windmill Cafe',mainBranchLabel:'Main Branch',notifSound:true,autoRefresh:true,showUrgentBadge:true};}
+  catch{return {cafeName:'Windmill Cafe',mainBranchLabel:'Main Branch',notifSound:true,autoRefresh:true,showUrgentBadge:true};}
+}
+function saveSettings(s){localStorage.setItem('wm_settings',JSON.stringify(s));}
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let currentFilter='All';
+let notifCount=0;
+let openOrders={};
+
+/* ══════════════════════════════════════
+   DATA  (Firebase-backed)
+══════════════════════════════════════ */
+function getData(){ return _ordersCache; }
+function saveData(d){
+  _ordersCache = d;
+  // Stamp _ts on any order that lacks one (newest-first order)
+  d.forEach((o, i) => { if (!o._ts) o._ts = Date.now() - i; });
+  const obj = {};
+  d.forEach(o => { obj[o.id.replace(/[^a-zA-Z0-9_]/g, '_')] = o; });
+  DB.ref('wm_orders').set(obj).catch(e => console.error('Firebase saveData:', e));
+}
+function getActivity(){ return _activityCache; }
+function addActivity(msg){
+  const entry = { msg, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), _ts: Date.now() };
+  _activityCache.unshift(entry);
+  if (_activityCache.length > 60) _activityCache.pop();
+  const obj = {};
+  _activityCache.forEach((a, i) => { obj['a' + String(i).padStart(3, '0')] = a; });
+  DB.ref('wm_activity').set(obj).catch(e => console.error('Firebase addActivity:', e));
+}
+function now(){return new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+function showToast(title,msg,type=''){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML=`<div class="toast-title">${title}</div><div class="toast-msg">${msg}</div>`;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(),4500);
+}
+function clearNotif(){notifCount=0;const b=document.getElementById('notifBadge');b.style.display='none';}
+
+/* ══════════════════════════════════════
+   CATEGORY MANAGER
+══════════════════════════════════════ */
+function openCatManager(){document.getElementById('catManagerOverlay').classList.add('open');renderCatManager();}
+function closeCatManager(){document.getElementById('catManagerOverlay').classList.remove('open');}
+
+function refreshCatManager(){
+  DB.ref('wm_categories_data').once('value').then(snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)&&val.length){
+      _catsCache=val;
+    }else if(!val){
+      _catsCache=JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      DB.ref('wm_categories_data').set(_catsCache);
+    }
+    renderCatManager();
+    showToast('Categories Synced','Loaded latest from server','success');
+  }).catch(()=>showToast('Sync Failed','Could not reach server',''));
+}
+function renderCatManager(){
+  const cats=getCategories();
+  const body=document.getElementById('catManagerBody');
+  if(!cats.length){body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:14px">No categories yet.</div>';return;}
+  body.innerHTML=cats.map(cat=>`
+    <div class="cat-card" id="catcard_${cat.id}">
+      <div class="cat-card-header" id="catheader_${cat.id}">
+        <div class="cat-emoji-display">${cat.emoji||'📦'}</div>
+        <div class="cat-name-display">${cat.name}</div>
+        <span class="cat-count">${cat.subs.length} item${cat.subs.length!==1?'s':''}</span>
+        <button class="cat-edit-btn" onclick="editCategory('${cat.id}')" title="Rename category">✏️</button>
+        <button class="cat-del-btn" onclick="deleteCategory('${cat.id}')" title="Delete category">🗑</button>
+      </div>
+      <div class="cat-card-body">
+        <div class="sub-items-wrap" id="subs_${cat.id}">
+          ${cat.subs.length
+            ? cat.subs.map((s,i)=>`<span class="sub-item-tag">${s}<button class="sub-item-del" onclick="deleteSubItem('${cat.id}',${i})">✕</button></span>`).join('')
+            : '<span style="font-size:12px;color:var(--text3);font-style:italic">No sub-items yet</span>'}
+        </div>
+        <div class="add-sub-row">
+          <input class="add-sub-input" id="subinput_${cat.id}" placeholder="Add sub-item..." onkeydown="if(event.key==='Enter')addSubItem('${cat.id}')">
+          <button class="add-sub-btn" onclick="addSubItem('${cat.id}')">+ Add</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function editCategory(id){
+  const cats=getCategories();
+  const cat=cats.find(c=>c.id===id);
+  if(!cat)return;
+  const header=document.getElementById('catheader_'+id);
+  if(!header)return;
+  header.innerHTML=`
+    <div class="cat-edit-form">
+      <input class="cat-edit-emoji" id="ced_emoji_${id}" value="${(cat.emoji||'').replace(/"/g,'&quot;')}" maxlength="4" placeholder="📦" title="Emoji">
+      <input class="cat-edit-name"  id="ced_name_${id}"  value="${cat.name.replace(/"/g,'&quot;')}" placeholder="Category name"
+        onkeydown="if(event.key==='Enter')saveCategoryEdit('${id}');if(event.key==='Escape')renderCatManager();">
+      <button class="cat-edit-save"   onclick="saveCategoryEdit('${id}')">✓ Save</button>
+      <button class="cat-edit-cancel" onclick="renderCatManager()">✕</button>
+    </div>`;
+  const inp=document.getElementById('ced_name_'+id);
+  if(inp){inp.focus();inp.select();}
+}
+
+function saveCategoryEdit(id){
+  const nameEl=document.getElementById('ced_name_'+id);
+  const emojiEl=document.getElementById('ced_emoji_'+id);
+  if(!nameEl)return;
+  const name=nameEl.value.trim();
+  const emoji=emojiEl?emojiEl.value.trim()||'📦':'📦';
+  if(!name){nameEl.focus();showToast('Name required','Please enter a category name','');return;}
+  const cats=getCategories();
+  const idx=cats.findIndex(c=>c.id===id);
+  if(idx===-1)return;
+  cats[idx].name=name;
+  cats[idx].emoji=emoji;
+  saveCategories(cats);
+  renderCatManager();
+  showToast('Category Updated',`"${name}" saved`,'success');
+}
+
+function addCategory(){
+  const emoji=document.getElementById('newCatEmoji').value.trim()||'📦';
+  const name=document.getElementById('newCatName').value.trim();
+  if(!name){document.getElementById('newCatName').focus();return;}
+  const cats=getCategories();
+  cats.push({id:genCatId(),name,emoji,subs:[]});
+  saveCategories(cats);
+  document.getElementById('newCatEmoji').value='';
+  document.getElementById('newCatName').value='';
+  renderCatManager();
+  showToast('Category Added',`"${name}" created`,'success');
+}
+
+function deleteCategory(id){
+  const cats=getCategories();
+  const cat=cats.find(c=>c.id===id);
+  if(!cat||!confirm(`Delete category "${cat.name}"?`))return;
+  saveCategories(cats.filter(c=>c.id!==id));
+  renderCatManager();
+  showToast('Deleted',`"${cat.name}" removed`,'');
+}
+
+function addSubItem(catId){
+  const inp=document.getElementById('subinput_'+catId);
+  const val=inp.value.trim();
+  if(!val){inp.focus();return;}
+  const cats=getCategories();
+  const idx=cats.findIndex(c=>c.id===catId);
+  if(idx===-1)return;
+  if(cats[idx].subs.includes(val)){showToast('Already exists',`"${val}" already in category`,'');inp.focus();return;}
+  cats[idx].subs.push(val);
+  saveCategories(cats);
+  inp.value='';inp.focus();
+  renderCatManager();
+}
+
+function deleteSubItem(catId,subIdx){
+  const cats=getCategories();
+  const idx=cats.findIndex(c=>c.id===catId);
+  if(idx===-1)return;
+  cats[idx].subs.splice(subIdx,1);
+  saveCategories(cats);
+  renderCatManager();
+}
+
+/* ══════════════════════════════════════
+   BRANCH MANAGER
+══════════════════════════════════════ */
+function openBranchManager(){document.getElementById('branchManagerOverlay').classList.add('open');renderBranchManager();}
+function closeBranchManager(){document.getElementById('branchManagerOverlay').classList.remove('open');}
+
+function renderBranchManager(){
+  const branches = getBranches();
+  const body = document.getElementById('branchManagerBody');
+  const keys = Object.keys(branches);
+  if(!keys.length){body.innerHTML='<div style="padding:1rem;color:var(--text3);font-size:14px;text-align:center">No branches yet. Add one below.</div>';return;}
+  body.innerHTML = keys.map(k=>`
+    <div class="bm-branch-row">
+      <div class="bm-emoji">${branches[k].emoji}</div>
+      <div class="bm-name">${branches[k].name}</div>
+      <button class="bm-edit-btn" onclick="editBranchPrompt('${k}')">✏️ Edit</button>
+      <button class="bm-del-btn" onclick="deleteBranch('${k}')">🗑 Remove</button>
+    </div>`).join('');
+}
+
+function addBranch(){
+  const emoji = document.getElementById('newBranchEmoji').value.trim() || '🏪';
+  const name  = document.getElementById('newBranchName').value.trim();
+  if(!name){document.getElementById('newBranchName').focus();return;}
+  const branches = getBranches();
+  // generate a slug key
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,16) + Date.now().toString().slice(-4);
+  branches[key] = {name, emoji};
+  saveBranches(branches);
+  BRANCHES = getBranches();
+  document.getElementById('newBranchEmoji').value='';
+  document.getElementById('newBranchName').value='';
+  renderBranchManager();
+  render();
+  showToast('Branch Added',`"${name}" added`,'success');
+}
+
+function editBranchPrompt(key){
+  const branches = getBranches();
+  const b = branches[key];
+  document.getElementById('modalContainer').innerHTML=`
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-title">Edit Branch</div>
+        <div class="modal-sub">Update branch name and emoji</div>
+        <input class="modal-input" id="editBranchEmoji" value="${b.emoji}" placeholder="Emoji" style="width:80px;margin-right:10px;display:inline-block" maxlength="4">
+        <input class="modal-input" id="editBranchName" value="${b.name}" placeholder="Branch name" style="width:calc(100% - 100px);display:inline-block">
+        <div style="height:10px"></div>
+        <div class="modal-btns">
+          <button class="modal-btn cancel-m" onclick="closeModal()">Cancel</button>
+          <button class="modal-btn confirm" onclick="saveBranchEdit('${key}')">✓ Save</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveBranchEdit(key){
+  const name = document.getElementById('editBranchName').value.trim();
+  const emoji = document.getElementById('editBranchEmoji').value.trim() || '🏪';
+  if(!name)return;
+  const branches = getBranches();
+  branches[key] = {name, emoji};
+  saveBranches(branches);
+  BRANCHES = getBranches();
+  closeModal();
+  renderBranchManager();
+  render();
+  showToast('Branch Updated',`"${name}" saved`,'success');
+}
+
+function deleteBranch(key){
+  const branches = getBranches();
+  const b = branches[key];
+  if(!confirm(`Remove branch "${b.name}"? This won't delete its orders but it won't appear in filters anymore.`))return;
+  delete branches[key];
+  saveBranches(branches);
+  BRANCHES = getBranches();
+  renderBranchManager();
+  render();
+  showToast('Branch Removed',`"${b.name}" removed`,'');
+}
+
+/* ══════════════════════════════════════
+   REPORTS
+══════════════════════════════════════ */
+function openReports(){
+  document.getElementById('reportsOverlay').classList.add('open');
+  renderReports();
+}
+function closeReports(){document.getElementById('reportsOverlay').classList.remove('open');}
+
+function renderReports(){
+  const data = getData();
+  const cats = getCategories();
+  const branches = getBranches();
+  const statuses = ['Pending','Processing','Arranged','Sent','Received','Cancelled'];
+
+  // by status
+  const byStatus = statuses.map(s=>({s, count:data.filter(o=>o.status===s).length}));
+  // by branch
+  const byBranch = Object.keys(branches).map(k=>({name:branches[k].emoji+' '+branches[k].name, count:data.filter(o=>o.from===k).length}));
+  // total items
+  const totalItems = data.reduce((a,o)=>a+o.items.length,0);
+  // urgent
+  const urgent = data.filter(o=>o.status==='Pending'&&o.items.some(i=>i.priority==='High')).length;
+
+  document.getElementById('reportsBody').innerHTML=`
+    <div class="report-grid">
+      <div class="report-card">
+        <div class="report-card-title">Orders by Status</div>
+        ${byStatus.map(r=>`<div class="report-stat-row"><span>${r.s}</span><span>${r.count}</span></div>`).join('')}
+        <div class="report-stat-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><span style="font-weight:600;color:var(--text)">Total Orders</span><span style="color:var(--accent2)">${data.length}</span></div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-title">Orders by Branch</div>
+        ${byBranch.length ? byBranch.map(r=>`<div class="report-stat-row"><span>${r.name}</span><span>${r.count}</span></div>`).join('') : '<div style="color:var(--text3);font-size:13px">No data</div>'}
+      </div>
+      <div class="report-card">
+        <div class="report-card-title">Summary</div>
+        <div class="report-stat-row"><span>Total Items Ordered</span><span>${totalItems}</span></div>
+        <div class="report-stat-row"><span>Urgent Pending</span><span style="color:var(--red)">${urgent}</span></div>
+        <div class="report-stat-row"><span>Active Categories</span><span>${cats.length}</span></div>
+        <div class="report-stat-row"><span>Active Branches</span><span>${Object.keys(branches).length}</span></div>
+        <div class="report-stat-row"><span>Completion Rate</span><span style="color:var(--green)">${data.length?Math.round((data.filter(o=>['Sent','Received'].includes(o.status)).length/data.length)*100)+'%':'—'}</span></div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-title">Top Categories in Orders</div>
+        ${(()=>{
+          const tally={};
+          data.forEach(o=>o.items.forEach(i=>{if(i.type)tally[i.type]=(tally[i.type]||0)+1;}));
+          const sorted=Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,6);
+          return sorted.length?sorted.map(([k,v])=>`<div class="report-stat-row"><span>${k}</span><span>${v} items</span></div>`).join(''):'<div style="color:var(--text3);font-size:13px">No order data yet</div>';
+        })()}
+      </div>
+    </div>
+    <div class="report-actions">
+      <button class="report-btn" onclick="printAllReport()">🖨️ Print Full Report</button>
+      <button class="report-btn green" onclick="exportCSV()">📥 Export CSV</button>
+      <button class="report-btn" onclick="printBranchReport()">📋 Print by Branch</button>
+    </div>
+  `;
+}
+
+function printAllReport(){
+  const data = getData();
+  const branches = getBranches();
+  const w = window.open('','_blank','width=900,height=700');
+  const rows = data.map((o,i)=>`<tr><td>${i+1}</td><td style="font-family:monospace;color:#c4895a">${o.id}</td><td>${branches[o.from]?branches[o.from].emoji+' '+branches[o.from].name:o.from}</td><td>${o.status}</td><td>${o.items.length}</td><td>${o.created}</td></tr>`).join('');
+  w.document.write(`<!DOCTYPE html><html><head><title>Windmill Report</title><style>body{font-family:'Segoe UI',sans-serif;margin:40px;color:#1a1208}.logo-area{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #c4895a;}h1{font-size:20px;margin:0;color:#1a1208}.cafe-sub{font-size:12px;color:#7a6448;margin-top:2px}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}th{background:#2e2213;color:#e0a870;text-align:left;padding:9px 10px;font-size:11px;text-transform:uppercase}td{padding:8px 10px;border-bottom:1px solid #f0e8d8}tr:nth-child(even) td{background:#fdfaf5}.footer{margin-top:20px;font-size:12px;color:#999;border-top:1px solid #e8dfd0;padding-top:12px}@media print{button{display:none}}</style></head><body>
+    <div class="logo-area"><svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" width="44" height="44" style="flex-shrink:0"><defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8B5E3C"/><stop offset="50%" stop-color="#c4895a"/><stop offset="100%" stop-color="#8B5E3C"/></linearGradient><radialGradient id="hg" cx="50%" cy="35%" r="60%"><stop offset="0%" stop-color="#f8e4c0"/><stop offset="100%" stop-color="#c4895a"/></radialGradient></defs><polygon points="24.5,47 27.5,47 26.5,27 25.5,27" fill="url(#tg)"/><rect x="20" y="46" width="12" height="3.5" rx="1.8" fill="#7a5030"/><path d="M26,26 C27.5,22 29,16 27,8 C25.5,12 23.5,16 26,26Z" fill="#c4895a"/><path d="M26,26 C30,24.5 36,23 44,25 C40,26.5 36,28.5 26,26Z" fill="#d4a06a"/><path d="M26,26 C24.5,30 23,36 25,44 C26.5,40 28.5,36 26,26Z" fill="#c4895a"/><path d="M26,26 C22,27.5 16,29 8,27 C12,25.5 16,23.5 26,26Z" fill="#d4a06a"/><circle cx="26" cy="26" r="5" fill="url(#hg)" stroke="#8B5E3C" stroke-width="1"/><circle cx="24.8" cy="24.8" r="1.2" fill="white" opacity="0.5"/></svg><div><h1>Windmill Cafe — Full Order Report</h1><div class="cafe-sub">Main Branch · Generated: ${new Date().toLocaleString('en-GB')}</div></div></div>
+    <table><thead><tr><th>#</th><th>Order ID</th><th>Branch</th><th>Status</th><th>Items</th><th>Created</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="footer">Total: ${data.length} orders — Windmill Cafe Main Branch</div>
+    <script>window.print();<\/script></body></html>`);
+}
+
+function exportCSV(){
+  const data = getData();
+  const branches = getBranches();
+  let csv = 'Order ID,Branch,Status,Items Count,Created,Updated\n';
+  data.forEach(o=>{
+    csv += `${o.id},"${branches[o.from]?branches[o.from].name:o.from}",${o.status},${o.items.length},"${o.created}","${o.updated||''}"\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'windmill-orders-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('CSV Exported','Orders downloaded as CSV','success');
+}
+
+function printBranchReport(){
+  const data = getData();
+  const branches = getBranches();
+  const w = window.open('','_blank','width=900,height=700');
+  let html='';
+  Object.keys(branches).forEach(k=>{
+    const bOrders = data.filter(o=>o.from===k);
+    if(!bOrders.length) return;
+    html+=`<h2 style="margin-top:24px;color:#2e2213">${branches[k].emoji} ${branches[k].name}</h2>`;
+    html+=`<table><thead><tr><th>#</th><th>Order ID</th><th>Status</th><th>Items</th><th>Date</th></tr></thead><tbody>`;
+    bOrders.forEach((o,i)=>{html+=`<tr><td>${i+1}</td><td style="font-family:monospace;color:#c4895a">${o.id}</td><td>${o.status}</td><td>${o.items.length}</td><td>${o.created}</td></tr>`;});
+    html+=`</tbody></table>`;
+  });
+  w.document.write(`<!DOCTYPE html><html><head><title>Branch Report</title><style>body{font-family:'Segoe UI',sans-serif;margin:40px;color:#1a1208}.logo-area{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #c4895a;}h1{font-size:20px;margin:0;color:#1a1208}.cafe-sub{font-size:12px;color:#7a6448;margin-top:2px}h2{font-size:16px;border-bottom:2px solid #c4895a;padding-bottom:6px}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;margin-bottom:16px}th{background:#2e2213;color:#e0a870;text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase}td{padding:7px 10px;border-bottom:1px solid #f0e8d8}@media print{button{display:none}}</style></head><body>
+    <div class="logo-area"><svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" width="44" height="44" style="flex-shrink:0"><defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8B5E3C"/><stop offset="50%" stop-color="#c4895a"/><stop offset="100%" stop-color="#8B5E3C"/></linearGradient><radialGradient id="hg" cx="50%" cy="35%" r="60%"><stop offset="0%" stop-color="#f8e4c0"/><stop offset="100%" stop-color="#c4895a"/></radialGradient></defs><polygon points="24.5,47 27.5,47 26.5,27 25.5,27" fill="url(#tg)"/><rect x="20" y="46" width="12" height="3.5" rx="1.8" fill="#7a5030"/><path d="M26,26 C27.5,22 29,16 27,8 C25.5,12 23.5,16 26,26Z" fill="#c4895a"/><path d="M26,26 C30,24.5 36,23 44,25 C40,26.5 36,28.5 26,26Z" fill="#d4a06a"/><path d="M26,26 C24.5,30 23,36 25,44 C26.5,40 28.5,36 26,26Z" fill="#c4895a"/><path d="M26,26 C22,27.5 16,29 8,27 C12,25.5 16,23.5 26,26Z" fill="#d4a06a"/><circle cx="26" cy="26" r="5" fill="url(#hg)" stroke="#8B5E3C" stroke-width="1"/><circle cx="24.8" cy="24.8" r="1.2" fill="white" opacity="0.5"/></svg><div><h1>Windmill Cafe — Orders by Branch</h1><div class="cafe-sub">Main Branch · Generated: ${new Date().toLocaleString('en-GB')}</div></div></div>
+    ${html}
+    <script>window.print();<\/script></body></html>`);
+}
+
+/* ══════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════ */
+function openSettings(){
+  document.getElementById('settingsOverlay').classList.add('open');
+  renderSettings();
+}
+function closeSettings(){document.getElementById('settingsOverlay').classList.remove('open');}
+
+function renderSettings(){
+  const s = getSettings();
+  const curTheme = localStorage.getItem('wm_theme')||'caramel';
+  const themes = [
+    {id:'caramel', label:'Caramel', colors:['#1a1208','#c4895a','#5aab7a','#5a90c0']},
+    {id:'navy',    label:'Navy',    colors:['#0d111a','#4d9de0','#3dbf7a','#8a70e0']},
+    {id:'forest',  label:'Forest',  colors:['#0b1610','#4dbe7a','#d4b040','#50a0c8']},
+    {id:'crimson', label:'Crimson', colors:['#160a0a','#d44040','#4dab70','#5a88b8']},
+    {id:'slate',   label:'Slate',   colors:['#100d1a','#8060e0','#40b888','#5090d8']},
+  ];
+  document.getElementById('settingsBody').innerHTML=`
+    <div class="settings-section">
+      <div class="settings-section-title">🎨 Color Theme</div>
+      <div class="settings-label" style="margin-bottom:10px">Choose your interface color palette<small>Applied instantly & saved automatically</small></div>
+      <div class="theme-switcher">
+        ${themes.map(t=>`
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div class="theme-swatch ${curTheme===t.id?'active':''}" onclick="setTheme('${t.id}')" title="${t.label}">
+              <div class="theme-swatch-inner">
+                <div class="ts-q" style="background:${t.colors[0]}"></div>
+                <div class="ts-q" style="background:${t.colors[1]}"></div>
+                <div class="ts-q" style="background:${t.colors[2]}"></div>
+                <div class="ts-q" style="background:${t.colors[3]}"></div>
+              </div>
+            </div>
+            <div class="theme-label">${t.label}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">General</div>
+      <div class="settings-row">
+        <div class="settings-label">Cafe Name<small>Shown in headers & printouts</small></div>
+        <input class="settings-input" id="stgCafeName" value="${s.cafeName||'Windmill Cafe'}">
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Main Branch Label<small>Badge shown in header</small></div>
+        <input class="settings-input" id="stgBranchLabel" value="${s.mainBranchLabel||'Main Branch'}">
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Notifications & Behaviour</div>
+      <div class="settings-row">
+        <div class="settings-label">Show Urgent Badge<small>Highlight high-priority pending orders</small></div>
+        <label class="toggle"><input type="checkbox" id="stgUrgent" ${s.showUrgentBadge?'checked':''}><span class="toggle-slider"></span></label>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Notification Sound<small>Play sound on new orders (if supported)</small></div>
+        <label class="toggle"><input type="checkbox" id="stgSound" ${s.notifSound?'checked':''}><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Data Management</div>
+      <div class="settings-row">
+        <div class="settings-label">Export All Data<small>Download all orders as CSV</small></div>
+        <button class="report-btn" onclick="exportCSV()" style="font-size:12px;padding:7px 12px;">📥 Export CSV</button>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Reset Branches<small>Restore default branches</small></div>
+        <button class="settings-danger-btn" onclick="resetBranches()">↺ Reset</button>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Clear All Orders<small>Permanently delete all order data</small></div>
+        <button class="settings-danger-btn" onclick="clearAllOrders()">🗑 Clear Orders</button>
+      </div>
+    </div>
+    <button class="settings-save-btn" onclick="saveSettingsForm()">✓ Save Settings</button>
+  `;
+}
+
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('wm_theme',t);
+  // Re-render swatches to show active state
+  document.querySelectorAll('.theme-swatch').forEach(el=>{
+    el.classList.toggle('active', el.getAttribute('onclick').includes("'"+t+"'"));
+  });
+  showToast('Theme Applied', t.charAt(0).toUpperCase()+t.slice(1)+' theme activated','success');
+}
+
+function saveSettingsForm(){
+  const s = {
+    cafeName: document.getElementById('stgCafeName').value.trim() || 'Windmill Cafe',
+    mainBranchLabel: document.getElementById('stgBranchLabel').value.trim() || 'Main Branch',
+    showUrgentBadge: document.getElementById('stgUrgent').checked,
+    notifSound: document.getElementById('stgSound').checked,
+  };
+  saveSettings(s);
+  showToast('Settings Saved','Your preferences have been updated','success');
+  render();
+}
+
+function resetBranches(){
+  if(!confirm('Reset to default branches (Dubai, Abu Dhabi, Sharjah, Al Ain)?'))return;
+  _branchesCache = null;
+  DB.ref('wm_branches').set(DEFAULT_BRANCHES);
+  BRANCHES = getBranches();
+  renderBranchManager && renderBranchManager();
+  render();
+  showToast('Branches Reset','Default branches restored','success');
+}
+
+function clearAllOrders(){
+  if(!confirm('Delete ALL orders permanently? This cannot be undone.'))return;
+  _ordersCache = [];
+  _activityCache = [];
+  DB.ref('wm_orders').set(null);
+  DB.ref('wm_activity').set(null);
+  render();
+  showToast('Orders Cleared','All orders have been deleted','');
+}
+
+/* ══════════════════════════════════════
+   ORDER ACTIONS
+══════════════════════════════════════ */
+function updateStatus(id,newStatus,response=''){
+  const data=getData();
+  const idx=data.findIndex(o=>o.id===id);
+  if(idx===-1)return;
+  data[idx].status=newStatus;
+  data[idx].updated=now();
+  if(response)data[idx].response=response;
+  saveData(data);
+  const itemCount=data[idx].items.length;
+  addActivity(`${newStatus}: Order ${id} (${itemCount} items) → ${(BRANCHES[data[idx].from]||{name:data[idx].from}).name}`);
+  showToast(`Order ${newStatus}`,`${id} — ${(BRANCHES[data[idx].from]||{name:data[idx].from}).name} · ${itemCount} item${itemCount>1?'s':''}`,newStatus==='Sent'?'success':newStatus==='Cancelled'?'':'info');
+  render();
+}
+
+function openSendModal(id){
+  const o=getData().find(o=>o.id===id);
+  if(!o)return;
+  document.getElementById('modalContainer').innerHTML=`
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-title">Mark Order as Sent</div>
+        <div class="modal-sub">Order <strong>${id}</strong> · ${o.items.length} items · ${(BRANCHES[o.from]||{name:o.from}).name}</div>
+        <input class="modal-input" id="sendNote" placeholder="Note for the branch (e.g. Sent with driver — ETA 2 hrs)...">
+        <div class="modal-btns">
+          <button class="modal-btn cancel-m" onclick="closeModal()">Cancel</button>
+          <button class="modal-btn confirm" onclick="confirmSend('${id}')">↑ Confirm Sent</button>
+        </div>
+      </div>
+    </div>`;
+}
+function closeModal(){document.getElementById('modalContainer').innerHTML='';}
+function confirmSend(id){const note=document.getElementById('sendNote').value.trim();closeModal();updateStatus(id,'Sent',note);}
+
+function deleteOrder(id){
+  if(!confirm('Delete this order?'))return;
+  saveData(getData().filter(o=>o.id!==id));
+  render();
+}
+
+function toggleOrder(id){
+  openOrders[id]=!openOrders[id];
+  const body=document.getElementById('ob_'+id);
+  const chev=document.getElementById('oc_'+id);
+  if(body)body.style.display=openOrders[id]?'block':'none';
+  if(chev)chev.className='order-chevron'+(openOrders[id]?' open':'');
+}
+
+function setFilter(f){currentFilter=f;render();}
+function statusClass(s){return{Pending:'pending',Processing:'processing',Arranged:'arranged',Sent:'sent',Received:'received',Cancelled:'cancelled'}[s]||'pending';}
+
+/* ══════════════════════════════════════
+   PRINT ORDER
+══════════════════════════════════════ */
+function printOrder(id){
+  const o=getData().find(o=>o.id===id);
+  if(!o)return;
+  const settings=getSettings();
+  const w=window.open('','_blank','width=800,height=680');
+  const rows=o.items.map((it,i)=>`<tr><td style="text-align:center;color:#999;font-size:12px">${i+1}</td><td style="font-weight:500">${it.name}</td><td style="font-family:monospace;color:#c4895a;font-weight:600">${it.qty}</td><td>${it.catEmoji||''}${it.type||'—'}</td><td>${it.priority==='High'?'⚡ High':'Normal'}</td><td style="color:#999;font-style:italic">${it.notes||'—'}</td></tr>`).join('');
+  const branchName = BRANCHES[o.from] ? BRANCHES[o.from].emoji+' '+BRANCHES[o.from].name : o.from;
+  w.document.write(`<!DOCTYPE html><html><head><title>Order ${o.id}</title><style>
+    body{font-family:'Segoe UI',sans-serif;margin:40px;color:#1a1208;background:#fff;}
+    .logo-area{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:16px;border-bottom:2px solid #c4895a;}
+    .logo-icon{width:48px;height:48px;flex-shrink:0;}
+    h1{font-size:20px;margin:0;color:#1a1208;}
+    .cafe-sub{font-size:12px;color:#7a6448;margin-top:2px;}
+    .meta{font-size:13px;color:#7a6448;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;}
+    .meta span{background:#f5efe6;padding:3px 10px;border-radius:6px;}
+    .status-tag{padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;background:#f5efe6;color:#c4895a;}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+    th{background:#2e2213;color:#e0a870;text-align:left;padding:9px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;}
+    td{padding:8px 10px;border-bottom:1px solid #f0e8d8;}
+    tr:last-child td{border-bottom:none;}
+    tr:nth-child(even) td{background:#fdfaf5;}
+    .footer{margin-top:20px;font-size:12px;color:#999;border-top:1px solid #e8dfd0;padding-top:12px;display:flex;justify-content:space-between;}
+    @media print{body{margin:20px}button{display:none}}
+  </style></head><body>
+    <div class="logo-area">
+      <div class="logo-icon"><svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" width="48" height="48"><defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8B5E3C"/><stop offset="50%" stop-color="#c4895a"/><stop offset="100%" stop-color="#8B5E3C"/></linearGradient><radialGradient id="hg" cx="50%" cy="35%" r="60%"><stop offset="0%" stop-color="#f8e4c0"/><stop offset="100%" stop-color="#c4895a"/></radialGradient></defs><polygon points="24.5,47 27.5,47 26.5,27 25.5,27" fill="url(#tg)"/><rect x="20" y="46" width="12" height="3.5" rx="1.8" fill="#7a5030"/><rect x="24.5" y="41" width="3" height="4" rx="1" fill="#5a3820" opacity="0.7"/><path d="M26,26 C27.5,22 29,16 27,8 C25.5,12 23.5,16 26,26Z" fill="#c4895a"/><path d="M26,26 C30,24.5 36,23 44,25 C40,26.5 36,28.5 26,26Z" fill="#d4a06a"/><path d="M26,26 C24.5,30 23,36 25,44 C26.5,40 28.5,36 26,26Z" fill="#c4895a"/><path d="M26,26 C22,27.5 16,29 8,27 C12,25.5 16,23.5 26,26Z" fill="#d4a06a"/><circle cx="26" cy="26" r="5" fill="url(#hg)" stroke="#8B5E3C" stroke-width="1"/><circle cx="24.8" cy="24.8" r="1.2" fill="white" opacity="0.5"/></svg></div>
+      <div><h1>${settings.cafeName||'Windmill Cafe'}</h1><div class="cafe-sub">${settings.mainBranchLabel||'Main Branch'} — Order Printout</div></div>
+      <div style="margin-left:auto"><span class="status-tag">${o.status}</span></div>
+    </div>
+    <div class="meta">
+      <span>📋 ${o.id}</span>
+      <span>📍 ${branchName}</span>
+      <span>📅 ${o.date||o.created}</span>
+      <span>📦 ${o.items.length} item${o.items.length!==1?'s':''}</span>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Category</th><th>Priority</th><th>Note</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${o.note?`<div style="margin-top:14px;font-size:13px;color:#7a6448;font-style:italic;padding:8px 12px;background:#fdf6e3;border-left:3px solid #c4895a;border-radius:4px">📝 Order Note: ${o.note}</div>`:''}
+    ${o.response?`<div style="margin-top:8px;font-size:13px;color:#3a7d56;padding:8px 12px;background:#edf7f1;border-left:3px solid #3a7d56;border-radius:4px">✅ Sent Note: ${o.response}</div>`:''}
+    <div class="footer"><span>Order ID: ${o.id} · Created: ${o.created}</span><span>${settings.cafeName||'Windmill Cafe'} — ${settings.mainBranchLabel||'Main Branch'}</span></div>
+    <script>window.print();<\/script>
+  </body></html>`);
+}
+
+/* ══════════════════════════════════════
+   EDIT ORDER
+══════════════════════════════════════ */
+let eoOrderId=null;
+let eoItems=[];
+
+function openEO(id){
+  const o=getData().find(o=>o.id===id);
+  if(!o)return;
+  eoOrderId=id;
+  eoItems=o.items.map(it=>Object.assign({},it));
+  document.getElementById('eoTitle').textContent=`Edit Order — ${id}`;
+  document.getElementById('eoSub').textContent=`${(BRANCHES[o.from]||{emoji:'',name:o.from}).emoji} ${(BRANCHES[o.from]||{name:o.from}).name} · ${o.created}`;
+  document.getElementById('eoOverlay').style.display='flex';
+  eoRenderRows();
+}
+
+function closeEO(){document.getElementById('eoOverlay').style.display='none';eoOrderId=null;eoItems=[];}
+
+function eoRenderRows(){
+  const cats=getCategories();
+  document.getElementById('eoItemRows').innerHTML=eoItems.map((it,i)=>{
+    const selCat=cats.find(c=>c.id===it.catId);
+    const currentCatId=it.catId||(selCat?selCat.id:'');
+    return`<div class="eo-item-row" id="eo-row-${i}">
+      <div class="eo-row-num">${i+1}</div>
+      <input class="eo-input" value="${(it.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" oninput="eoItems[${i}].name=this.value">
+      <input class="eo-input" value="${(it.qty||'').replace(/"/g,'&quot;')}" placeholder="Qty" oninput="eoItems[${i}].qty=this.value">
+      <select class="eo-select" onchange="eoSetCat(${i},this.value)">
+        <option value="">— Category —</option>${cats.map(c=>`<option value="${c.id}"${c.id===currentCatId?' selected':''}>${c.emoji} ${c.name}</option>`).join('')}
+      </select>
+      <select class="eo-select" onchange="eoItems[${i}].priority=this.value">
+        <option${(it.priority||'Normal')==='Normal'?' selected':''}>Normal</option>
+        <option${it.priority==='High'?' selected':''}>High</option>
+      </select>
+      <input class="eo-input" value="${(it.notes||'').replace(/"/g,'&quot;')}" placeholder="Note..." oninput="eoItems[${i}].notes=this.value">
+      <button class="eo-del-row" onclick="eoRemoveRow(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function eoSetCat(idx,catId){
+  const cats=getCategories();
+  const found=cats.find(c=>c.id===catId);
+  eoItems[idx].catId=catId;
+  eoItems[idx].type=found?found.name:'';
+  eoItems[idx].catEmoji=found?found.emoji||'':'';
+}
+function eoRemoveRow(idx){eoItems.splice(idx,1);eoRenderRows();}
+function eoAddRow(){
+  eoItems.push({id:Math.random().toString(36).slice(2,8),name:'',qty:'',type:'',catId:'',catEmoji:'',priority:'Normal',notes:''});
+  eoRenderRows();
+  setTimeout(()=>{const rows=document.querySelectorAll('.eo-item-row');if(rows.length){const inp=rows[rows.length-1].querySelector('.eo-input');if(inp)inp.focus();}},50);
+}
+function saveEO(){
+  const validItems=eoItems.filter(it=>it.name&&it.name.trim()&&it.qty&&it.qty.trim());
+  if(!validItems.length){showToast('Nothing to save','Add at least one item with name and quantity','');return;}
+  const data=getData();
+  const idx=data.findIndex(o=>o.id===eoOrderId);
+  if(idx===-1)return;
+  data[idx].items=validItems;
+  data[idx].updated=now();
+  saveData(data);
+  addActivity(`Edited: Order ${eoOrderId} — items updated`);
+  showToast('Order Updated',`${eoOrderId} saved with ${validItems.length} item${validItems.length!==1?'s':''}`, 'success');
+  closeEO();
+  render();
+}
+
+/* ══════════════════════════════════════
+   MANUAL REFRESH — force one-time re-read from Firebase
+══════════════════════════════════════ */
+function refreshAllData(){
+  Promise.all([
+    DB.ref('wm_orders').once('value'),
+    DB.ref('wm_branches').once('value'),
+    DB.ref('wm_categories_data').once('value'),
+    DB.ref('wm_activity').once('value'),
+  ]).then(([oSnap,bSnap,cSnap,aSnap])=>{
+    const ov=oSnap.val();
+    _ordersCache=ov?Object.values(ov).sort((a,b)=>(b._ts||0)-(a._ts||0)):[];
+    _branchesCache=bSnap.val()||null;
+    BRANCHES=getBranches();
+    const cv=cSnap.val();
+    _catsCache=(cv&&Array.isArray(cv)&&cv.length)?cv:JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+    const av=aSnap.val();
+    _activityCache=av?Object.values(av).sort((a,b)=>(b._ts||0)-(a._ts||0)):[];
+    render();
+    showToast('Refreshed','All data synced from server','success');
+  }).catch(()=>showToast('Refresh Failed','Could not reach Firebase',''));
+}
+
+/* ══════════════════════════════════════
+   MAIN RENDER
+══════════════════════════════════════ */
+function render(){
+  BRANCHES = getBranches();
+  const data=getData();
+  const totalItems=data.reduce((a,o)=>a+o.items.length,0);
+  const s={
+    total:data.length,
+    pending:data.filter(o=>o.status==='Pending').length,
+    processing:data.filter(o=>o.status==='Processing').length,
+    arranged:data.filter(o=>o.status==='Arranged').length,
+    sent:data.filter(o=>o.status==='Sent').length,
+  };
+  const urgentHigh=data.filter(o=>o.status==='Pending'&&o.items.some(i=>i.priority==='High')).length;
+  const activity=getActivity();
+  const cats=getCategories();
+
+  let filtered=data;
+  if(currentFilter!=='All'){
+    if(['Pending','Processing','Arranged','Sent','Received','Cancelled'].includes(currentFilter)){
+      filtered=data.filter(o=>o.status===currentFilter);
+    }else{
+      filtered=data.filter(o=>o.from===currentFilter);
+    }
+  }
+
+  const allBranches=Object.keys(BRANCHES);
+
+  document.getElementById('appContent').innerHTML=`
+    <div style="margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:500;color:var(--text)">Control Center</h1>
+        <p style="font-size:14px;color:var(--text2);margin-top:2px">${data.length} orders · ${totalItems} total items · <span style="color:var(--purple)">${cats.length} categories</span></p>
+      </div>
+      <div style="font-size:13px;color:var(--text3)">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card ${urgentHigh>0?'urgent':''}">
+        <div class="stat-label">Urgent Orders</div>
+        <div class="stat-value">${urgentHigh}</div>
+        <div class="stat-sub">High priority pending</div>
+      </div>
+      <div class="stat-card ${s.pending>0?'accent':''}">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">${s.pending}</div>
+        <div class="stat-sub">Need action</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Processing</div>
+        <div class="stat-value">${s.processing}</div>
+        <div class="stat-sub">Being arranged</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sent</div>
+        <div class="stat-value">${s.sent}</div>
+        <div class="stat-sub">Dispatched</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Items</div>
+        <div class="stat-value">${totalItems}</div>
+        <div class="stat-sub">Across all orders</div>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <div>
+        <div class="sidebar-card">
+          <div class="sidebar-title">Branch Status</div>
+          ${allBranches.map(b=>{
+            const pending=data.filter(o=>o.from===b&&o.status==='Pending').length;
+            const total=data.filter(o=>o.from===b).length;
+            return`<div class="branch-item">
+              <div>
+                <div class="branch-name">${BRANCHES[b].emoji} ${BRANCHES[b].name}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px">${total} order${total!==1?'s':''}</div>
+              </div>
+              <span class="branch-cnt ${pending>0?'has-pending':'clear'}">${pending>0?pending+' pending':'clear'}</span>
+            </div>`;
+          }).join('')}
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Filter by Branch</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              ${allBranches.map(b=>{
+                const cnt=data.filter(o=>o.from===b).length;
+                return`<button class="filter-tab ${currentFilter===b?'active':''}" onclick="setFilter('${b}')" style="text-align:left;border-radius:var(--radius-sm)">${BRANCHES[b].emoji} ${BRANCHES[b].name.replace(' Branch','')} <span class="cnt">${cnt}</span></button>`;
+              }).join('')}
+              <button class="filter-tab ${currentFilter==='All'?'active':''}" onclick="setFilter('All')" style="text-align:left;border-radius:var(--radius-sm)">All Branches <span class="cnt">${data.length}</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">📂 Categories Overview</div>
+          ${cats.map(cat=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:16px">${cat.emoji||'📦'}</span>
+                <span style="font-size:13px;color:var(--text)">${cat.name}</span>
+              </div>
+              <span style="font-size:11px;color:var(--text3)">${cat.subs.length} items</span>
+            </div>`).join('')}
+          <button onclick="openCatManager()" style="width:100%;margin-top:10px;padding:8px;background:var(--purple-bg);color:var(--purple);border:1px dashed rgba(154,112,192,.4);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .12s" onmouseover="this.style.background='var(--purple)';this.style.color='white'" onmouseout="this.style.background='var(--purple-bg)';this.style.color='var(--purple)'">
+            ✏️ Edit Categories
+          </button>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">Activity Log</div>
+          <div class="activity-log">
+            ${activity.length?activity.map(a=>`
+              <div class="activity-item">
+                <div class="activity-dot"></div>
+                <div style="flex:1;font-size:12px;color:var(--text2)">${a.msg}</div>
+                <div class="activity-time">${a.time}</div>
+              </div>`).join(''):`<div style="font-size:13px;color:var(--text3);text-align:center;padding:1rem">No activity yet</div>`}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="main-card">
+          <div class="card-header">
+            <span class="card-title">Incoming Orders</span>
+            <span style="font-size:13px;color:var(--text2)">${filtered.length} showing</span>
+          </div>
+          <div class="filter-tabs">
+            ${[
+              {key:'All',count:data.length},
+              {key:'Pending',count:s.pending},
+              {key:'Processing',count:s.processing},
+              {key:'Arranged',count:s.arranged},
+              {key:'Sent',count:s.sent},
+              {key:'Received',count:data.filter(o=>o.status==='Received').length},
+            ].map(t=>`<button class="filter-tab ${currentFilter===t.key?'active':''}" onclick="setFilter('${t.key}')">${t.key}<span class="cnt">${t.count}</span></button>`).join('')}
+          </div>
+
+          <div class="order-list">
+            ${filtered.length?filtered.map(o=>{
+              const isOpen=openOrders[o.id]||false;
+              const highItems=o.items.filter(i=>i.priority==='High').length;
+              const isUrgent=highItems>0&&o.status==='Pending';
+              const branchObj = BRANCHES[o.from]||{emoji:'🏪',name:o.from};
+              return`
+              <div class="order-card ${isUrgent?'urgent-order':''}">
+                <div class="order-header" onclick="toggleOrder('${o.id}')">
+                  <span class="order-id">${o.id}</span>
+                  <div class="order-info">
+                    <div class="order-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                      <span class="from-badge">${branchObj.emoji} ${branchObj.name}</span>
+                      <span class="badge ${statusClass(o.status)}">${o.status}</span>
+                      ${highItems>0?`<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:8px;font-weight:600">⚡ ${highItems} urgent</span>`:''}
+                    </div>
+                    <div class="order-meta">
+                      <strong style="color:var(--text)">${o.items.length} item${o.items.length>1?'s':''}</strong>
+                      &nbsp;·&nbsp;${o.items.slice(0,3).map(i=>i.name).join(', ')}${o.items.length>3?` +${o.items.length-3} more`:''}
+                      &nbsp;·&nbsp;${o.created}
+                    </div>
+                  </div>
+                  <span class="order-chevron ${isOpen?'open':''}" id="oc_${o.id}">▾</span>
+                </div>
+                <div id="ob_${o.id}" style="display:${isOpen?'block':'none'}">
+                  <div class="order-body">
+                    <table class="items-table">
+                      <thead>
+                        <tr><th>#</th><th>Item</th><th>Qty</th><th>Category</th><th>Priority</th><th>Note</th></tr>
+                      </thead>
+                      <tbody>
+                        ${o.items.map((it,idx)=>`
+                          <tr>
+                            <td style="color:var(--text3);font-size:12px">${idx+1}</td>
+                            <td class="item-name">${it.name}</td>
+                            <td style="color:var(--accent2);font-weight:500">${it.qty}</td>
+                            <td><span style="font-size:11px;background:var(--surface3);color:var(--text2);padding:2px 8px;border-radius:8px">${it.catEmoji||''}${it.type||'—'}</span></td>
+                            <td>${it.priority==='High'?`<span class="priority-high-tag">⚡ High</span>`:`<span style="font-size:11px;color:var(--text3)">Normal</span>`}</td>
+                            <td style="color:var(--text3);font-style:italic;font-size:12px">${it.notes||'—'}</td>
+                          </tr>`).join('')}
+                      </tbody>
+                    </table>
+                    ${o.note?`<div class="order-note-display">"${o.note}"</div>`:''}
+                    ${o.response?`<div class="sent-note"><span>Sent with note:</span> ${o.response}</div>`:''}
+                    <div class="order-actions">
+                      ${o.status==='Pending'?`<button class="action-btn process" onclick="updateStatus('${o.id}','Processing')">▶ Process</button>`:''}
+                      ${o.status==='Processing'?`<button class="action-btn arrange" onclick="updateStatus('${o.id}','Arranged')">✓ Arranged</button>`:''}
+                      ${o.status==='Arranged'?`<button class="action-btn send" onclick="openSendModal('${o.id}')">↑ Mark Sent</button>`:''}
+                      ${!['Received','Cancelled'].includes(o.status)?`<button class="action-btn cancel" onclick="updateStatus('${o.id}','Cancelled')">✕ Cancel</button>`:''}
+                      <button class="action-btn" style="background:var(--amber-bg);color:var(--amber);border-color:rgba(212,160,64,.4)" onclick="openEO('${o.id}')">✏️ Edit</button>
+                      <button class="action-btn" style="background:var(--purple-bg);color:var(--purple);border-color:rgba(154,112,192,.4)" onclick="printOrder('${o.id}')">🖨 Print</button>
+                      <button class="action-btn del" onclick="deleteOrder('${o.id}')">🗑 Delete</button>
+                      <span style="font-size:11px;color:var(--text3);margin-left:auto">Updated: ${o.updated||o.created}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+            }).join(''):`<div class="empty-state"><div class="icon">📦</div><p>No orders in this category</p></div>`}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ══════════════════════════════════════
+   REAL-TIME SYNC (Firebase onValue handles this — see initFirebaseListeners above)
+══════════════════════════════════════ */
+
+document.getElementById('catManagerOverlay').addEventListener('click',function(e){if(e.target===this)closeCatManager();});
+document.getElementById('branchManagerOverlay').addEventListener('click',function(e){if(e.target===this)closeBranchManager();});
+document.getElementById('reportsOverlay').addEventListener('click',function(e){if(e.target===this)closeReports();});
+document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)closeSettings();});
+
+/* ══ INIT THEME ══ */
+(function(){
+  const t=localStorage.getItem('wm_theme')||'caramel';
+  document.documentElement.setAttribute('data-theme',t);
+})();
+
+/* ══ INIT FIREBASE & START ══ */
+initFirebaseListeners();
+render();
+</script>
+</body>
+</html>
