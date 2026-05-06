@@ -545,6 +545,11 @@
 </head>
 <body>
 
+<!-- OFFLINE BANNER -->
+<div id="connBanner" style="display:none;background:#c05050;color:white;padding:10px 20px;align-items:center;justify-content:space-between;gap:12px;font-size:13px;font-weight:500;z-index:200;position:sticky;top:0;">
+  <span>⚠️ <strong>Firebase connection lost.</strong> Check your internet. Data cannot be saved until reconnected. Auto-retrying every 10s…</span>
+  <button onclick="DB.goOnline();showToast('Reconnecting…','Attempting to reconnect to Firebase','info')" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:6px;color:white;padding:5px 14px;cursor:pointer;font-size:12px;white-space:nowrap;">↺ Retry Now</button>
+</div>
 <header class="header">
   <div class="logo">
     <!-- Animated Windmill SVG Logo -->
@@ -752,6 +757,42 @@ let _branchesCache = null;
 let _catsCache     = null;
 let _activityCache = [];
 let _dbReady       = false;
+let _fbConnected   = false;
+let _reconnectTimer = null;
+
+/* ── CONNECTION MONITORING ── */
+DB.ref('.info/connected').on('value', function(snap) {
+  _fbConnected = snap.val() === true;
+  const banner = document.getElementById('connBanner');
+  const liveInd = document.querySelector('.live-indicator');
+  if (_fbConnected) {
+    if (banner) banner.style.display = 'none';
+    if (liveInd) liveInd.innerHTML = '<div class="live-dot"></div>Live';
+    // Clear any pending reconnect timer
+    if (_reconnectTimer) { clearTimeout(_reconnectTimer); _reconnectTimer = null; }
+    // If we were offline, refresh all data when we come back online
+    if (_dbReady) {
+      refreshAllData();
+    }
+  } else {
+    if (banner) banner.style.display = 'flex';
+    if (liveInd) liveInd.innerHTML = '<div class="live-dot" style="background:var(--red);animation:none"></div><span style="color:var(--red)">Offline</span>';
+    // Schedule auto-retry every 10 seconds
+    scheduleReconnect();
+  }
+});
+
+function scheduleReconnect() {
+  if (_reconnectTimer) return; // already scheduled
+  _reconnectTimer = setTimeout(function() {
+    _reconnectTimer = null;
+    if (!_fbConnected) {
+      // Force Firebase to try reconnecting by re-establishing the listener
+      DB.goOnline();
+      scheduleReconnect(); // reschedule if still offline
+    }
+  }, 10000);
+}
 
 /* ── FIREBASE LISTENERS (registered after var declarations below) ── */
 function initFirebaseListeners() {
@@ -760,20 +801,29 @@ function initFirebaseListeners() {
     _branchesCache = snap.val() || null;
     BRANCHES = getBranches();
     render();
+  }, function(err) {
+    console.error('wm_branches read error:', err);
+    if (err.code === 'PERMISSION_DENIED') showFirebaseRulesError();
   });
 
   DB.ref('wm_categories_data').on('value', function(snap) {
     const val = snap.val();
     if (val && Array.isArray(val) && val.length) {
-      _catsCache = val;
+      _catsCache = val.map(function(c){ return Object.assign({}, c, {subs: Array.isArray(c.subs)?c.subs:[]}); });
     } else if (!val) {
       // First load — write defaults to Firebase so all clients share them
       _catsCache = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-      DB.ref('wm_categories_data').set(_catsCache);
+      DB.ref('wm_categories_data').set(_catsCache).catch(e => {
+        console.warn('Could not write default categories:', e.code);
+        // Rules may block branch apps from writing — that's OK, main app will write
+      });
     }
     // Refresh category manager overlay if it is open
     const overlay = document.getElementById('catManagerOverlay');
     if (overlay && overlay.classList.contains('open')) renderCatManager();
+  }, function(err) {
+    console.error('wm_categories_data read error:', err);
+    if (err.code === 'PERMISSION_DENIED') showFirebaseRulesError();
   });
 
   DB.ref('wm_activity').on('value', function(snap) {
@@ -781,13 +831,13 @@ function initFirebaseListeners() {
     _activityCache = val
       ? Object.values(val).sort((a, b) => (b._ts || 0) - (a._ts || 0))
       : [];
-  });
+  }, function(err) { console.error('wm_activity read error:', err); });
 
   DB.ref('wm_orders').on('value', function(snap) {
     const val = snap.val();
     const newOrders = val
       ? Object.values(val)
-          .filter(o => o && o.id) // skip null/corrupt entries
+          .filter(o => o && o.id)
           .map(o => ({...o, items: Array.isArray(o.items)?o.items:[]}))
           .sort((a, b) => (b._ts || 0) - (a._ts || 0))
       : [];
@@ -811,7 +861,19 @@ function initFirebaseListeners() {
     _ordersCache = newOrders;
     _dbReady     = true;
     render();
+  }, function(err) {
+    console.error('wm_orders read error:', err);
+    if (err.code === 'PERMISSION_DENIED') showFirebaseRulesError();
   });
+}
+
+function showFirebaseRulesError() {
+  const banner = document.getElementById('connBanner');
+  if (banner) {
+    banner.style.background = '#b07020';
+    banner.style.display = 'flex';
+    banner.querySelector('span').innerHTML = '🔐 <strong>Firebase PERMISSION DENIED.</strong> Your Security Rules are blocking access. Go to Firebase Console → Realtime Database → Rules and set them to allow read/write. <a href="https://console.firebase.google.com/project/windmill-cafe-stors/database/windmill-cafe-stors-default-rtdb/rules" target="_blank" style="color:white;text-decoration:underline">Open Rules →</a>';
+  }
 }
 
 /* ══════════════════════════════════════
@@ -846,7 +908,11 @@ const DEFAULT_CATEGORIES=[
   {id:'c6',name:'Cleaning Supplies',emoji:'🧹',subs:['Detergent','Descaler','Wipes','Gloves','Sponges','Cleaning Tablets']},
 ];
 
-function getCategories(){ return _catsCache ? JSON.parse(JSON.stringify(_catsCache)) : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)); }
+function getCategories(){
+  const raw = _catsCache ? JSON.parse(JSON.stringify(_catsCache)) : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+  // Ensure every category has a valid subs array
+  return raw.map(c=>({...c, subs: Array.isArray(c.subs)?c.subs:[]}));
+}
 function saveCategories(cats){
   _catsCache = cats;
   DB.ref('wm_categories_data').set(cats).catch(e => {
@@ -944,14 +1010,14 @@ function renderCatManager(){
       <div class="cat-card-header" id="catheader_${cat.id}">
         <div class="cat-emoji-display">${cat.emoji||'📦'}</div>
         <div class="cat-name-display">${cat.name}</div>
-        <span class="cat-count">${cat.subs.length} item${cat.subs.length!==1?'s':''}</span>
+        <span class="cat-count">${(cat.subs||[]).length} item${(cat.subs||[]).length!==1?'s':''}</span>
         <button class="cat-edit-btn" onclick="editCategory('${cat.id}')" title="Rename category">✏️</button>
         <button class="cat-del-btn" onclick="deleteCategory('${cat.id}')" title="Delete category">🗑</button>
       </div>
       <div class="cat-card-body">
         <div class="sub-items-wrap" id="subs_${cat.id}">
-          ${cat.subs.length
-            ? cat.subs.map((s,i)=>`<span class="sub-item-tag">${s}<button class="sub-item-del" onclick="deleteSubItem('${cat.id}',${i})">✕</button></span>`).join('')
+          ${(cat.subs||[]).length
+            ? (cat.subs||[]).map((s,i)=>`<span class="sub-item-tag">${s}<button class="sub-item-del" onclick="deleteSubItem('${cat.id}',${i})">✕</button></span>`).join('')
             : '<span style="font-size:12px;color:var(--text3);font-style:italic">No sub-items yet</span>'}
         </div>
         <div class="add-sub-row">
@@ -1833,6 +1899,11 @@ function saveEO(){
    MANUAL REFRESH — force one-time re-read from Firebase
 ══════════════════════════════════════ */
 function refreshAllData(){
+  if (!_fbConnected) {
+    showToast('Offline','No Firebase connection. Check internet & rules.','');
+    DB.goOnline(); // attempt reconnect
+    return;
+  }
   Promise.all([
     DB.ref('wm_orders').once('value'),
     DB.ref('wm_branches').once('value'),
@@ -1849,7 +1920,13 @@ function refreshAllData(){
     _activityCache=av?Object.values(av).sort((a,b)=>(b._ts||0)-(a._ts||0)):[];
     render();
     showToast('Refreshed','All data synced from server','success');
-  }).catch(()=>showToast('Refresh Failed','Could not reach Firebase',''));
+  }).catch((err)=>{
+    console.error('refreshAllData error:', err);
+    const msg = err && err.code === 'PERMISSION_DENIED'
+      ? 'Firebase rules denied access — check Security Rules in Firebase Console'
+      : 'Could not reach Firebase — check internet connection';
+    showToast('Refresh Failed', msg, '');
+  });
 }
 
 /* ══════════════════════════════════════
@@ -1954,7 +2031,7 @@ function render(){
                 <span style="font-size:16px">${cat.emoji||'📦'}</span>
                 <span style="font-size:13px;color:var(--text)">${cat.name}</span>
               </div>
-              <span style="font-size:11px;color:var(--text3)">${cat.subs.length} items</span>
+              <span style="font-size:11px;color:var(--text3)">${(cat.subs||[]).length} items</span>
             </div>`).join('')}
           <button onclick="openCatManager()" style="width:100%;margin-top:10px;padding:8px;background:var(--purple-bg);color:var(--purple);border:1px dashed rgba(154,112,192,.4);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .12s" onmouseover="this.style.background='var(--purple)';this.style.color='white'" onmouseout="this.style.background='var(--purple-bg)';this.style.color='var(--purple)'">
             ✏️ Edit Categories
